@@ -15,7 +15,7 @@ import javax.imageio.ImageIO;
  */
 public class TakeScreenshot {
 
-  public static void main(String[] args) {
+  public static void run(){
     try {
       Robot robot = new Robot();
       String fileName = "E:\\" + timestamp() + ".png";
