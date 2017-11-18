@@ -1,5 +1,3 @@
-
-
 import java.awt.AWTException;
 import java.awt.Rectangle;
 import java.awt.Robot;
@@ -20,7 +18,7 @@ public class TakeScreenshot {
   public static void run(){
     try {
       Robot robot = new Robot();
-      String fileName = "E:\\" + timestamp() + ".png";
+      String fileName = timestamp() + ".png";
 
       Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
       BufferedImage screenFullImage = robot.createScreenCapture(screenRect);
