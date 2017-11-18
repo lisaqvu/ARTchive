@@ -30,6 +30,7 @@ public class Watcher extends Thread {
   public void run() {
     try (WatchService watcher = FileSystems.getDefault().newWatchService()) {
       Path path = file.toPath().getParent();
+      long lastModified = file.lastModified();
       path.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
       while (!isStopped()) {
         WatchKey key;
@@ -43,6 +44,7 @@ public class Watcher extends Thread {
           continue;
         }
 
+        Thread.sleep(500);
         for (WatchEvent<?> event : key.pollEvents()) {
           WatchEvent.Kind<?> kind = event.kind();
 
@@ -54,8 +56,9 @@ public class Watcher extends Thread {
             Thread.yield();
             continue;
           } else if (kind == java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
-              && filename.toString().equals(file.getName())) {
+              && filename.toString().equals(file.getName()) && file.lastModified() - lastModified > 1000) {
             doOnChange();
+            lastModified = file.lastModified();
           }
           boolean valid = key.reset();
           if (!valid) {

@@ -6,5 +6,4 @@ public class Main {
     Watcher watch = new Watcher(new File("C:\\Users\\Lisa Vu\\Desktop\\Untitled-1.psd"));
     watch.run();
   }
-
 }
