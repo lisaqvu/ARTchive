@@ -24,7 +24,7 @@ public class TakeScreenshot {
       BufferedImage screenFullImage = robot.createScreenCapture(screenRect);
       ImageIO.write(screenFullImage, "png", new File(fileName));
 
-      System.out.println("Success!");
+      System.out.println("Screenshot taken!");
 
     } catch (AWTException | IOException ex) {
       System.err.println(ex);
