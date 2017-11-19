@@ -8,11 +8,13 @@ cd $projDir
 
 if [ ! -d "$projDir" ]; then
 	mkdir $artchives
+	echo "created folder"
 else
+	echo "folder already exists"
 	cd $artchives
 	if [ ! -e "$git_file" ]; then
 		git init
-		echo "file not found"
+		echo "git repo created"
 	fi
 fi
 
@@ -27,7 +29,7 @@ else
     commitmessage="version_$now"
     echo $commitmessage
     git commit -m "$commitmessage"
-    return 1
+    return 0
 fi
 
 }

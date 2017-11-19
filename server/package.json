@@ -6,6 +6,7 @@
   "dependencies": {
     "express": "^4.16.2",
     "eyes": "^0.1.8",
+    "fs-extra": "^4.0.2",
     "glob": "^7.1.2",
     "simple-git": "^1.82.0"
   },
