@@ -26,7 +26,7 @@ public class Watcher extends Thread {
 
   private void runScript() throws IOException, InterruptedException {
     if (System.getProperty("os.name").startsWith("Windows")) {
-      Runtime.getRuntime().exec(new String[] {"cmd.exe", "/c", "./test.bat"});
+      Runtime.getRuntime().exec(new String[] {"cmd.exe",  "./test.bat"});
     } else {
       ProcessBuilder processBuilder = new ProcessBuilder("sh", "./test.sh");
       // Sets the source and destination for subprocess standard I/O to be the same as those of the

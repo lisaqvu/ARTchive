@@ -18,7 +18,7 @@ public class TakeScreenshot {
   public static void run(){
     try {
       Robot robot = new Robot();
-      String fileName = "./photoshop/" + timestamp() + ".png";
+      String fileName = "./photoshop/" + "test" + ".png";
 
       Rectangle screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
       BufferedImage screenFullImage = robot.createScreenCapture(screenRect);
