@@ -1,6 +1,6 @@
 run_git(){
 
-projDir=~/User/Desktop/
+projDir=~/Desktop/
 artchives="ARTchive"
 git_file=".git"
 
@@ -16,21 +16,21 @@ else
 		git init
 		echo "git repo created"
 	fi
+
+	if git diff-index --quiet HEAD --; then
+		    # no changes
+		return 0
+	else
+		git add *
+		now=$(date +"%m-%d-%Y %r")
+		commitmessage="version_$now"
+		echo $commitmessage
+		git commit -m "$commitmessage"
+		return 0
+  fi
 fi
 
 #when there is changes , git add and git commit
-
-if git diff-index --quiet HEAD --; then
-    # no changes
-	return 0
-else
-    git add *
-    now=$(date +"%m-%d-%Y %r")
-    commitmessage="version_$now"
-    echo $commitmessage
-    git commit -m "$commitmessage"
-    return 0
-fi
 
 }
 
