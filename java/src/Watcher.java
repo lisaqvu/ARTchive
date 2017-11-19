@@ -25,20 +25,25 @@ public class Watcher extends Thread {
   }
 
   private void runScript() throws IOException, InterruptedException {
-	    ProcessBuilder processBuilder = new ProcessBuilder("./test.sh");
-	    //Sets the source and destination for subprocess standard I/O to be the same as those of the current Java process.
-	    processBuilder.inheritIO();
-	    Process process = processBuilder.start();
+    if (System.getProperty("os.name").startsWith("Windows")) {
+      Runtime.getRuntime().exec(new String[] {"cmd.exe", "/c", "./test.bat"});
+    } else {
+      ProcessBuilder processBuilder = new ProcessBuilder("sh", "./test.sh");
+      // Sets the source and destination for subprocess standard I/O to be the same as those of the
+      // current Java process.
+      processBuilder.inheritIO();
+      Process process = processBuilder.start();
 
-	    int exitValue = process.waitFor();
-	    if (exitValue != 0) {
-	        // check for errors
-	        new BufferedInputStream(process.getErrorStream());
-	        throw new RuntimeException("execution of script failed!");
-	    }
-	}
-  
-  private void doOnChange() throws IOException, InterruptedException{
+      int exitValue = process.waitFor();
+      if (exitValue != 0) {
+        // check for errors
+        new BufferedInputStream(process.getErrorStream());
+        throw new RuntimeException("execution of script failed!");
+      }
+    }
+  }
+
+  private void doOnChange() throws IOException, InterruptedException {
     TakeScreenshot.run();
     runScript();
   }
@@ -47,7 +52,6 @@ public class Watcher extends Thread {
   public void run() {
     try (WatchService watcher = FileSystems.getDefault().newWatchService()) {
       Path path = file.toPath().getParent();
-      long lastModified = file.lastModified();
       path.register(watcher, StandardWatchEventKinds.ENTRY_MODIFY);
       while (!isStopped()) {
         WatchKey key;
@@ -73,9 +77,8 @@ public class Watcher extends Thread {
             Thread.yield();
             continue;
           } else if (kind == java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
-              && filename.toString().equals(file.getName()) && file.lastModified() - lastModified > 1000) {
+              && filename.toString().equals(file.getName())) {
             doOnChange();
-            lastModified = file.lastModified();
           }
           boolean valid = key.reset();
           if (!valid) {
