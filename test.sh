@@ -1,8 +1,6 @@
 run_git(){
-artchives="ARTchive"
+artchives="photoshop"
 git_file=".git"
-
-cd ~/Desktop/
 
 if [ ! -d "$artchives" ]; then
 	mkdir $artchives
