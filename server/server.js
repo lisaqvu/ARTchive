@@ -47,7 +47,15 @@ app.get("/", function(req, res) {
             (function (clsn){
             	let commit = commitHistory[clsn]
             	simpleGit.checkout(commit.hash, function() {
-                	fs.copy(repoPath + 'test.png', outputDirectory + '/' + clsn + '.png')
+                    var photoshopFiles = glob.sync(repoPath + "*")
+                    for (var j = 0 ; j <photoshopFiles.length ; j++){
+                        var filePath = photoshopFiles[j].split('/')
+                        console.log(filePath)
+                        var fileName = filePath[filePath.length-1]
+                        console.log(fileName)
+                        console.log( outputDirectory + '/' + clsn + ' ' + fileName)
+                        fs.copySync(photoshopFiles[j], outputDirectory + '/' + clsn + ' ' + fileName)
+                    }
             	})
             })(i)
         }
@@ -58,7 +66,7 @@ app.get("/", function(req, res) {
             // inspect(images)
             var imagesHTML = '';
             var dataTargetsHTML = '';
-            for (var i = 0; i < images.length; i++) {
+            for (var i = 0; i < commitHistory.length; i++) {
                 var caption = "Date: " + commitHistory[i].date + " , Version: " + i + " , Hash: " + commitHistory[i].hash
                 var path = images[i].split('/')
                 //just get the name of the image.
