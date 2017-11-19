@@ -1,10 +1,8 @@
 run_git(){
-
-projDir=~/Desktop/
 artchives="ARTchive"
 git_file=".git"
 
-cd $projDir
+cd ~/Desktop/
 
 if [ ! -d "$artchives" ]; then
 	mkdir $artchives
