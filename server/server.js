@@ -41,7 +41,7 @@ app.get("/", function(req, res){
     </div>
 	**/
 	var carouselHTML = ""
-	var images = glob.sync(__dirname + "/versions/*.png")
+	var images = glob.sync(__dirname + "/versions/*.jpg")
 	// inspect(images)
 	var imagesHTML = '';
 	for (var i = 0 ; i < images.length ; i++){

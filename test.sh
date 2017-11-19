@@ -12,11 +12,14 @@ else
 	cd $artchives
 	if [ ! -e "$git_file" ]; then
 		git init
-		echo "git repo created"
+		echo "file not found"
 	fi
 fi
 
+#when there is changes , git add and git commit 
+
 if git diff-index --quiet HEAD --; then
+    # no changes
 	return 0
 else
     git add *
@@ -24,10 +27,9 @@ else
     commitmessage="version_$now"
     echo $commitmessage
     git commit -m "$commitmessage"
-    return 0
+    return 1
 fi
 
 }
 
 run_git
-
