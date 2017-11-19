@@ -28,7 +28,6 @@ app.use(express.static(__dirname + '/../webpage/'))
 app.use(express.static(outputDirectory))
 // What port to run this local server on ?
 const port = 9999
-// Start listening to server
 var server = app.listen(process.env.PORT || port, function() {
     console.log('Listening on port %s!', server.address().port)
 })
@@ -70,7 +69,9 @@ app.get("/", function(req, res) {
                 var caption = "Date: " + commitHistory[i].date + " , Version: " + i + " , Hash: " + commitHistory[i].hash
                 var path = images[i].split('/')
                 //just get the name of the image.
+                console.log("path" + path)
                 var image = path[path.length - 1]
+                console.log("image" + image)
                 if (i == 0) {
                     var singleImageHTML = '<div class="carousel-item active"><img src="' + image + '"width="1100" height="500"><div class="carousel-caption"><h3>' + caption + '</h3></div></div>'
                     var singleDataTargetHTML = '<li data-target="#demo" data-slide-to="' + i + '" class="active"></li>'
@@ -96,23 +97,23 @@ app.get("/", function(req, res) {
     })
 })
 // CopySnapshots will checkout each commit, and then copy the test.png from that commit into our local versions/ directory.
-// Additionally you can provide options.file, which is the path to a file in your repository. Then only this file will be considered. 
-// log is the JSON object of commits
-// var copySnapshots = function(log) {
-//     // parentResolve because nested promises...
-//     return new Promise(function(parentResolve, parentReject) {
-//         //Extract the commit history. I don't need the latest, which is log.latest.
-//         var commitHistory = log.all
-//         //reverse the commits, so oldest one is named version0.png
+// Additionally you can provide options.file, which is the path to a file in your repository. Then only this file will be considered.
+//  log is the JSON object of commits
+//  var copySnapshots = function(log) {
+//       parentResolve because nested promises...
+//      return new Promise(function(parentResolve, parentReject) {
+//          //Extract the commit history. I don't need the latest, which is log.latest.
+//          var commitHistory = log.all
+//          //reverse the commits, so oldest one is named version0.png
 //         commitHistory.reverse();
-
-//         commitHistory.map(function(commit, i) {
-//             // console.log("mapping promise" + JSON.stringify(commit) + " " + i)
-//             simpleGit.checkout(commit.hash).then(fs.copy(repoPath + 'test.png', outputDirectory + '/' + i + '.png'))
-//         })
-//         // commitPromises.unshift(new Promise(function(resolve, reject) {
-//         simpleGit.checkout("master").then(parentResolve(commitHistory))
-//         // }))
+//
+//          commitHistory.map(function(commit, i) {
+// //             // console.log("mapping promise" + JSON.stringify(commit) + " " + i)
+//              simpleGit.checkout(commit.hash).then(fs.copy(repoPath + 'test.png', outputDirectory + '/' + i + '.png'))
+//          })
+//          // commitPromises.unshift(new Promise(function(resolve, reject) {
+//  //         simpleGit.checkout("master").then(parentResolve(commitHistory))
+// //         // }))
 
 //         // var head = commitPromises[0]
 //         // for(var i = 0 ; i < commitPromises.length ; i++) {
@@ -136,7 +137,7 @@ app.get("/", function(req, res) {
 //     })
 // }
 // Promise
-// resolve -> .then()	
+// resolve -> .then()
 // reject -> .catch()
 // var copyFile = function(i) {
 //     return new Promise(function(resolve, reject) {
@@ -151,7 +152,7 @@ app.get("/", function(req, res) {
 
 // var checkoutMaster = function() {
 //     return new Promise(function(resolve, reject) {
-//         return 
+//         return
 //     })
 // }
 
