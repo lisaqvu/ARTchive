@@ -1,4 +1,8 @@
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
@@ -7,7 +11,10 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
+import java.io.IOException;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteException;
 // Code copied https://stackoverflow.com/posts/27737069/revisions
 
 public class Watcher extends Thread {
@@ -22,8 +29,18 @@ public class Watcher extends Thread {
     return stop.get();
   }
 
-  private void doOnChange() {
+  public static void runScript() throws IOException {
+    try {
+      ProcessBuilder pb = new ProcessBuilder("test2.sh");
+      pb.start();
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
+    }
+  }
+
+  private void doOnChange() throws Exception {
     TakeScreenshot.run();
+    runScript();
   }
 
   @Override
@@ -56,7 +73,8 @@ public class Watcher extends Thread {
             Thread.yield();
             continue;
           } else if (kind == java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
-              && filename.toString().equals(file.getName()) && file.lastModified() - lastModified > 1000) {
+              && filename.toString().equals(file.getName())
+              && file.lastModified() - lastModified > 1000) {
             doOnChange();
             lastModified = file.lastModified();
           }
