@@ -1,4 +1,6 @@
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
@@ -22,8 +24,23 @@ public class Watcher extends Thread {
     return stop.get();
   }
 
-  private void doOnChange() {
+  private void runScript() throws IOException, InterruptedException {
+	    ProcessBuilder processBuilder = new ProcessBuilder("./test.sh");
+	    //Sets the source and destination for subprocess standard I/O to be the same as those of the current Java process.
+	    processBuilder.inheritIO();
+	    Process process = processBuilder.start();
+
+	    int exitValue = process.waitFor();
+	    if (exitValue != 0) {
+	        // check for errors
+	        new BufferedInputStream(process.getErrorStream());
+	        throw new RuntimeException("execution of script failed!");
+	    }
+	}
+  
+  private void doOnChange() throws IOException, InterruptedException{
     TakeScreenshot.run();
+    runScript();
   }
 
   @Override
@@ -68,7 +85,7 @@ public class Watcher extends Thread {
         Thread.yield();
       }
     } catch (Throwable e) {
-      System.out.println("Error");
+      System.out.println(e.getMessage());
     }
   }
 }

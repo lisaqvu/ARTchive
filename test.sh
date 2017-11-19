@@ -1,6 +1,6 @@
 run_git(){
 
-projDir=~/Desktop/
+projDir=~/User/Desktop/
 artchives="ARTchive"
 git_file=".git"
 
@@ -16,7 +16,7 @@ else
 	fi
 fi
 
-#when there is changes , git add and git commit 
+#when there is changes , git add and git commit
 
 if git diff-index --quiet HEAD --; then
     # no changes
