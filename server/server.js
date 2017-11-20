@@ -1,5 +1,6 @@
 // Inspect JSON Objects - Debugging Purposes
 var inspect = require('eyes').inspector({ styles: { all: 'magenta' } });
+var colors = require('colors');
 // App Server
 var express = require('express')
 var fs = require('fs-extra');
@@ -7,11 +8,11 @@ var fs = require('fs-extra');
 // Wild Char File Finder (See Globbing)
 var glob = require('glob')
 // NodeJs Git Library
-var git = require('simple-git')
+var git = require('simple-git/promise')
 
 // Git Module Configurations
 // Path to Git Repo
-const repoPath = __dirname + '/../photoshop/'
+const repoPath = __dirname + '/photoGitRepo'
 const simpleGit = git(repoPath);
 
 // The versions directory will contain all png snapshots of the commit history
@@ -24,7 +25,8 @@ if (!fs.existsSync(outputDirectory)) {
 // Web Server (Express) Set up
 var app = express();
 // Any files in this directory will be accessible by the client, like style.css, version1.png, index.html, etc.
-app.use(express.static(__dirname + '/../webpage/'))
+var webpageDirectory = __dirname + '/webpage'
+app.use(express.static(webpageDirectory))
 app.use(express.static(outputDirectory))
 // What port to run this local server on ?
 const port = 9999
@@ -36,133 +38,91 @@ var server = app.listen(process.env.PORT || port, function() {
 app.get("/", function(req, res) {
     //get the git log history of the git repo. The [] means no options.
     //then, call copySnapshots
-    simpleGit.log([], function(err, log) {
-    	console.log(log)
-        var commitHistory = log.all
-        //reverse the commits, so oldest one is named version0.png
-        commitHistory.reverse();
-        for (var i = 0; i < commitHistory.length; i++) {
-        	//http://www.geekabyte.io/2013/04/callback-functions-in-loops-in.html
-            (function (clsn){
-            	let commit = commitHistory[clsn]
-            	simpleGit.checkout(commit.hash, function() {
-                    var photoshopFiles = glob.sync(repoPath + "*")
-                    for (var j = 0 ; j <photoshopFiles.length ; j++){
-                        var filePath = photoshopFiles[j].split('/')
-                        console.log(filePath)
-                        var fileName = filePath[filePath.length-1]
-                        console.log(fileName)
-                        console.log( outputDirectory + '/' + clsn + ' ' + fileName)
-                        fs.copySync(photoshopFiles[j], outputDirectory + '/' + clsn + ' ' + fileName)
-                    }
-            	})
-            })(i)
-        }
-        simpleGit.checkout("master", function() {
-            console.log("reverted back to master")
-            var carouselHTML = ""
-            var images = glob.sync(outputDirectory + "/*.png")
-            // inspect(images)
-            var imagesHTML = '';
-            var dataTargetsHTML = '';
-            for (var i = 0; i < commitHistory.length; i++) {
-                var caption = "Date: " + commitHistory[i].date + " , Version: " + i + " , Hash: " + commitHistory[i].hash
-                var path = images[i].split('/')
-                //just get the name of the image.
-                console.log("path" + path)
-                var image = path[path.length - 1]
-                console.log("image" + image)
-                if (i == 0) {
-                    var singleImageHTML = '<div class="carousel-item active"><img src="' + image + '"width="1100" height="500"><div class="carousel-caption"><h3>' + caption + '</h3></div></div>'
-                    var singleDataTargetHTML = '<li data-target="#demo" data-slide-to="' + i + '" class="active"></li>'
-                } else {
-                    var singleImageHTML = '<div class="carousel-item"><img src="' + image + '"width="1100" height="500"><div class="carousel-caption"><h3>' + caption + '</h3></div></div>'
-                    var singleDataTargetHTML = '<li data-target="#demo" data-slide-to="' + i + '"></li>'
-                }
-                imagesHTML = imagesHTML + singleImageHTML
-                dataTargetsHTML = dataTargetsHTML + singleDataTargetHTML;
-            }
-            var html = fs.readFileSync(__dirname + "/../webpage/index_template.html", "utf8")
-            // console.log(html)
-            // console.log("	--------------")
-            // console.log(imagesHTML)
-            var newHtml = html.replace("Images", imagesHTML)
-            newHtml = newHtml.replace("DataTargets", dataTargetsHTML)
+    console.log("1. Receiving Request".red)
+    simpleGit.log([])
+    	.then((logs)=> { 
+    		console.log("2. Finished Running Git Log".green)
+    		return copySnapshots(logs)})
+    	.then((commitHistory) => {sendHTMLPage(commitHistory, res)})
+    	.catch(err => console.log(err))
 
-            // console.log("--------------")
-
-            res.end(newHtml)
-        })
-
-    })
 })
+
+var sendHTMLPage = function (commitHistory, response){
+    var carouselHTML = ""
+    var images = glob.sync(outputDirectory + "/*.png")
+    // inspect(images)
+    var imagesHTML = '';
+    var dataTargetsHTML = '';
+    for (var i = 0; i < commitHistory.length; i++) {
+        var caption = "Date: " + commitHistory[i].date + " , Version: " + i + " , Hash: " + commitHistory[i].hash
+        var path = images[i].split('/')
+        //just get the name of the image.
+        var image = path[path.length - 1]
+        if (i == 0) {
+            var singleImageHTML = '<div class="carousel-item active"><img src="' + image + '"width="1100" height="500"><div class="carousel-caption"><h3>' + caption + '</h3></div></div>'
+            var singleDataTargetHTML = '<li data-target="#demo" data-slide-to="' + i + '" class="active"></li>'
+        } else {
+            var singleImageHTML = '<div class="carousel-item"><img src="' + image + '"width="1100" height="500"><div class="carousel-caption"><h3>' + caption + '</h3></div></div>'
+            var singleDataTargetHTML = '<li data-target="#demo" data-slide-to="' + i + '"></li>'
+        }
+        imagesHTML = imagesHTML + singleImageHTML
+        dataTargetsHTML = dataTargetsHTML + singleDataTargetHTML;
+    }
+    var html = fs.readFileSync(webpageDirectory + "/" +  "index_template.html", "utf8")
+    // console.log(html)
+    // console.log("	--------------")
+    // console.log(imagesHTML)
+    var newHtml = html.replace("Images", imagesHTML)
+    newHtml = newHtml.replace("DataTargets", dataTargetsHTML)
+
+    // console.log("--------------")
+
+    response.end(newHtml)
+}
 // CopySnapshots will checkout each commit, and then copy the test.png from that commit into our local versions/ directory.
 // Additionally you can provide options.file, which is the path to a file in your repository. Then only this file will be considered.
 //  log is the JSON object of commits
-//  var copySnapshots = function(log) {
-//       parentResolve because nested promises...
-//      return new Promise(function(parentResolve, parentReject) {
-//          //Extract the commit history. I don't need the latest, which is log.latest.
-//          var commitHistory = log.all
-//          //reverse the commits, so oldest one is named version0.png
-//         commitHistory.reverse();
-//
-//          commitHistory.map(function(commit, i) {
-// //             // console.log("mapping promise" + JSON.stringify(commit) + " " + i)
-//              simpleGit.checkout(commit.hash).then(fs.copy(repoPath + 'test.png', outputDirectory + '/' + i + '.png'))
-//          })
-//          // commitPromises.unshift(new Promise(function(resolve, reject) {
-//  //         simpleGit.checkout("master").then(parentResolve(commitHistory))
-// //         // }))
-
-//         // var head = commitPromises[0]
-//         // for(var i = 0 ; i < commitPromises.length ; i++) {
-//         // 	head = head.then(commitPromises[i])
-//         // }
-//         // Promise.all(commitPromises).then(parentResolve(commitHistory))
-//         // Promise.all(commitPromises)
-//         // 	.then(function() {
-//         //     	return simpleGit.checkout("master")
-//         // 	})
-//         // 	.then(function() {
-//         //         return console.log("Set branch to master")
-//         //     }).then(parentResolve(commitHistory))
-//     })
-// }
-
-// var checkoutCommit = function(commit, i) {
-//     return new Promise(function(resolve, reject) {
-//         console.log("checking out " + commit.hash)
-//         return simpleGit.checkout(commit.hash).then(resolve())
-//     })
-// }
-// Promise
-// resolve -> .then()
-// reject -> .catch()
-// var copyFile = function(i) {
-//     return new Promise(function(resolve, reject) {
-//         console.log("copying " + i)
-//         // fs.createReadStream(repoPath + 'test.png').pipe(fs.createWriteStream(__dirname + '/' + dir + '/' + i + '.png')
-//         fs.copy(repoPath + 'test.png', outputDirectory + '/' + i + '.png').then(function() {
-//             console.log("supposedly done write stream.")
-//             resolve()
-//         });
-//     })
-// }
-
-// var checkoutMaster = function() {
-//     return new Promise(function(resolve, reject) {
-//         return
-//     })
-// }
-
-// var finishCheckoutMaster = function(parentResolve, commitHistory) {
-//     return new Promise(function(resolve, reject) {
-//         simpleGit.checkout("master").then(function() {
-//             console.log("Set branch to master")
-//             parentResolve(commitHistory)
-//             resolve();
-//         })
-
-//     })
-// }
+ var copySnapshots = function(log) {
+     return new Promise(function(resolve, reject) {
+         //Extract the commit history. I don't need the latest, which is log.latest.
+    	var commitHistory = log.all
+         //reverse the commits, so oldest one is named version0.png
+        commitHistory.reverse();
+        var commitPromises = []
+        // ForEach removes closure for the 'i' (index) variable.
+        // i will be generated for each iteration, so the function gets the approrpriate 'i' value.
+        commitHistory.forEach(function(commit, i) {
+            // console.log("mapping promise" + JSON.stringify(commit) + " " + i)
+			console.log("3. Creating and Pushing a promise to checkout and copy files from each commit".yellow)
+            commitPromises.push( //need to wrap promise in function so as to not run immediately
+            	function(){
+            		return new Promise(function(resolve, reject){
+		            	simpleGit.checkout(commit.hash)
+		            		.then(()=> {
+		            			console.log(colors.blue("4. Finished Checkout to %s"), commit.hash)
+		            			//file system extra , returns a promise.
+		            			return fs.copy(repoPath + '/' + '6.png', outputDirectory + '/' + i + '.png')})
+		            		.then(()=>{
+		            			console.log(colors.magenta("5. Successfully copied over %s.png"), i)
+		            			resolve();
+		            		})
+	            	})
+	            }
+            )
+        })
+        //starts off with Promise.resolve():
+        // as in :
+        // Promise.resolve().then(commitPromises[1])
+        commitPromises.reduce(function(cur, next){
+        	return cur.then(next); //for the next iteration, 'cur' will be the promise returned by then() 
+        }, Promise.resolve()).then(function(){
+        	console.log(colors.cyan("6. Finished All checkout and copies, going back to master"))
+        	return simpleGit.checkout("master")        	
+        }).then(()=>{
+        	console.log(colors.white("7. Passing commit history to parse"))
+        	inspect(commitHistory)
+        	resolve(commitHistory)
+        })   	
+    })
+}
